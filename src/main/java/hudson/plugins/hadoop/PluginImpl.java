@@ -45,7 +45,7 @@ public class PluginImpl extends Plugin {
 
         // build up a classpath
         StringBuilder classpath = new StringBuilder();
-        File hadoopHome = new File("/usr/local/hadoop-0.19.1");
+        File hadoopHome = new File("/usr/local/hadoop-0.19.0");
         for( String mask : new String[]{"hadoop-*-core.jar","lib/**/*.jar"}) {
             for(FilePath jar : new FilePath(hadoopHome).list(mask)) {
                 if(classpath.length()>0)    classpath.append(File.pathSeparatorChar);
@@ -85,7 +85,7 @@ public class PluginImpl extends Plugin {
 
             // location of the name node
             conf.set("fs.default.name","hdfs://localhost:12300/");
-            conf.set("dfs.http.address", "localhost:12301");
+            conf.set("dfs.http.address", "0.0.0.0:12301");
             // namespace node stores information here
             conf.set("dfs.name.dir","/tmp/hadoop/namedir");
             // dfs node stores information here
@@ -128,7 +128,7 @@ public class PluginImpl extends Plugin {
             JobConf jc = new JobConf();
             jc.set("fs.default.name","hdfs://localhost:12300/"); // where's HDFS?
             jc.set("mapred.job.tracker","localhost:22000");
-            jc.set("mapred.job.tracker.http.address","localhost:22001");
+            jc.set("mapred.job.tracker.http.address","0.0.0.0:22001");
             jc.set("mapred.local.dir","/tmp/hadoop/mapred");
             tracker = JobTracker.startTracker(jc);
 
