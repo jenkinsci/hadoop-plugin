@@ -15,7 +15,12 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * When 
+ * When a new computer becomes online, starts a Hadoop data node and task tracker.
+ *
+ * <p>
+ * This will be done on a separate JVM to allow administrators to control the JVM parameters better.
+ * This JVM automatically kills itself when the slave JVM gets disconnected.
+ *
  * @author Kohsuke Kawaguchi
  */
 @Extension
@@ -49,7 +54,7 @@ public class ComputerListenerImpl extends ComputerListener {
             System.out.println("Starting data node");
 
             Configuration conf = new Configuration();
-            conf.set("fs.default.name","hdfs://localhost:12300/");
+            conf.set("fs.default.name","hdfs://localhost:12300/");  // TODO: where's HDFS?
             conf.set("dfs.data.dir",new File(new File(rootPath),"hadoop/datanode").getAbsolutePath());
             conf.set("dfs.datanode.address", "127.0.0.1:0");
             conf.set("dfs.datanode.http.address", "127.0.0.1:0");
@@ -78,6 +83,8 @@ public class ComputerListenerImpl extends ComputerListener {
             System.out.println("Starting data node");
 
             JobConf conf = new JobConf();
+            conf.set("fs.default.name","hdfs://localhost:12300/"); // TODO: where's HDFS?
+            conf.set("mapred.job.tracker","localhost:22000");
             conf.set("slave.host.name", "localhost"); // TODO
             conf.set("mapred.task.tracker.http.address","localhost:0");
             conf.set("mapred.task.tracker.report.address","localhost:0");
