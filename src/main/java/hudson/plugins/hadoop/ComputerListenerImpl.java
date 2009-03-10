@@ -88,7 +88,7 @@ public class ComputerListenerImpl extends ComputerListener {
             conf.set("slave.host.name", "localhost"); // TODO
             conf.set("mapred.task.tracker.http.address","localhost:0");
             conf.set("mapred.task.tracker.report.address","localhost:0");
-            conf.set("mapred.local.dir",new File(new File(rootPath),"hadoop/datanode").getAbsolutePath());
+            conf.set("mapred.local.dir",new File(new File(rootPath),"hadoop/task-tracker").getAbsolutePath());
 
             new Thread(new TaskTracker(conf)).start();
 
