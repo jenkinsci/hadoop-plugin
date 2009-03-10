@@ -4,7 +4,9 @@ import hudson.FilePath;
 import hudson.Launcher.LocalLauncher;
 import hudson.Plugin;
 import hudson.Proc;
+import hudson.Launcher;
 import hudson.model.Computer;
+import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import hudson.remoting.Which;
@@ -32,12 +34,13 @@ public class PluginImpl extends Plugin {
     @Override
     public void start() throws Exception {
         // start Hadoop namenode and tracker node
-        channel = createHadoopVM();
+        StreamTaskListener listener = new StreamTaskListener(System.out);
+        channel = createHadoopVM(listener, new LocalLauncher(listener));
         channel.call(new NameNodeStartTask());
         channel.call(new JobTrackerStartTask());
     }
 
-    /*package*/ static Channel createHadoopVM() throws IOException, InterruptedException {
+    /*package*/ static Channel createHadoopVM(TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
         // launch Hadoop in a new JVM and have them connect back to us
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
@@ -61,8 +64,6 @@ public class PluginImpl extends Plugin {
 
         args.add("-connectTo","localhost:"+serverSocket.getLocalPort());
 
-        StreamTaskListener listener = new StreamTaskListener(System.out);
-        LocalLauncher launcher = new LocalLauncher(listener);
         Proc p = launcher.launch(args.toCommandArray(), new String[0], listener.getLogger(), null);
 
         Socket s = serverSocket.accept();
