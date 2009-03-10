@@ -32,7 +32,12 @@ public class PluginImpl extends Plugin {
     @Override
     public void start() throws Exception {
         // start Hadoop namenode and tracker node
+        channel = createHadoopVM();
+        channel.call(new NameNodeStartTask());
+        channel.call(new JobTrackerStartTask());
+    }
 
+    /*package*/ static Channel createHadoopVM() throws IOException, InterruptedException {
         // launch Hadoop in a new JVM and have them connect back to us
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
@@ -63,11 +68,8 @@ public class PluginImpl extends Plugin {
         Socket s = serverSocket.accept();
         serverSocket.close();
 
-        channel = Channels.forProcess("Channel to Hadoop", Computer.threadPoolForRemoting,
+        return Channels.forProcess("Channel to Hadoop", Computer.threadPoolForRemoting,
                 new BufferedInputStream(s.getInputStream()), new BufferedOutputStream(s.getOutputStream()), p);
-
-        channel.call(new NameNodeStartTask());
-        channel.call(new JobTrackerStartTask());
     }
 
     @Override
