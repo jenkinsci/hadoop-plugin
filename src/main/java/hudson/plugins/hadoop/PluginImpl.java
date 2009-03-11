@@ -4,6 +4,8 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Plugin;
 import hudson.Proc;
+import hudson.FilePath.TarCompression;
+import static hudson.FilePath.TarCompression.GZIP;
 import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.TaskListener;
@@ -51,7 +53,17 @@ public class PluginImpl extends Plugin {
         return url.getHost()+":"+JOB_TRACKER_PORT_NUMBER;
     }
 
-    /*package*/ Channel createHadoopVM(TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
+    /**
+     * @param rootDir
+     *      The slave/master root.
+     */
+    /*package*/ Channel createHadoopVM(FilePath rootDir, TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
+        // install Hadoop if it's not there
+        rootDir = rootDir.child("hadoop");
+        // TODO: if the right bit is already there, don't expand
+        listener.getLogger().println("Installing Hadoop binaries");
+        rootDir.untarFrom(getClass().getResourceAsStream("hadoop.tar.gz"),GZIP);
+
         // launch Hadoop in a new JVM and have them connect back to us
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
@@ -64,8 +76,9 @@ public class PluginImpl extends Plugin {
 
         // build up a classpath
         StringBuilder classpath = new StringBuilder();
-        File hadoopHome = new File("/usr/local/hadoop-0.19.0");
-        for( String mask : new String[]{"hadoop-*-core.jar","lib/**/*.jar"}) {
+        File hadoopHome = new File(rootDir.getRemote());
+        // TODO: a better version selection is necessary in case Hadoop updates
+        for( String mask : new String[]{"hadoop-*/hadoop-*-core.jar","hadoop-*/lib/**/*.jar"}) {
             for(FilePath jar : new FilePath(hadoopHome).list(mask)) {
                 if(classpath.length()>0)    classpath.append(File.pathSeparatorChar);
                 classpath.append(jar.getRemote());

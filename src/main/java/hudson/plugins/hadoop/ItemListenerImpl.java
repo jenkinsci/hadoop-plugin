@@ -1,6 +1,7 @@
 package hudson.plugins.hadoop;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher.LocalLauncher;
 import hudson.model.Hudson;
 import hudson.model.listeners.ItemListener;
@@ -30,7 +31,7 @@ public class ItemListenerImpl extends ItemListener {
             if(hdfsUrl!=null) {
                 // start Hadoop namenode and tracker node
                 StreamTaskListener listener = new StreamTaskListener(System.out);
-                p.channel = p.createHadoopVM(listener, new LocalLauncher(listener));
+                p.channel = p.createHadoopVM(Hudson.getInstance().getRootPath(), listener, new LocalLauncher(listener));
                 p.channel.call(new NameNodeStartTask(hdfsUrl));
                 p.channel.call(new JobTrackerStartTask(hdfsUrl,p.getJobTrackerAddress()));
             } else {

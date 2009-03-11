@@ -2,6 +2,7 @@ package hudson.plugins.hadoop;
 
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
@@ -34,9 +35,10 @@ public class ComputerListenerImpl extends ComputerListener {
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
             if(hdfsUrl !=null) {
-                Channel channel = p.createHadoopVM(listener,c.getNode().createLauncher(listener));
-                channel.call(new DataNodeStartTask(hdfsUrl,c.getNode().getRootPath().getRemote()));
-                channel.call(new TaskTrackerStartTask(hdfsUrl,p.getJobTrackerAddress(),c.getNode().getRootPath().getRemote()));
+                Node n = c.getNode();
+                Channel channel = p.createHadoopVM(n.getRootPath(), listener, n.createLauncher(listener));
+                channel.call(new DataNodeStartTask(hdfsUrl, n.getRootPath().getRemote()));
+                channel.call(new TaskTrackerStartTask(hdfsUrl,p.getJobTrackerAddress(), n.getRootPath().getRemote()));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,7 +71,7 @@ public class ComputerListenerImpl extends ComputerListener {
 
             // TODO: make this configurable
             // make room for builds
-            conf.setLong("dfs.datanode.du.reserved",10L*10024*10024*10024);
+            conf.setLong("dfs.datanode.du.reserved",10L*1024*1024*1024);
 
             DataNode dn = DataNode.instantiateDataNode(new String[0],conf);
             DataNode.runDatanodeDaemon(dn);

@@ -14,11 +14,64 @@
   <name>Hudson Hadoop plugin</name>
   <url>http://hudson.gotdns.com/wiki/display/HUDSON/Hadoop+Plugin</url>
 
+  <build>
+    <plugins>
+      <plugin>
+        <!-- put hadoop distribution in as a resource -->
+        <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+        <artifactId>maven-antrun-extended-plugin</artifactId>
+        <version>1.38</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <verifyArtifact>false</verifyArtifact>
+              <tasks>
+                <property name="dest" value="${project.basedir}/target/classes/hudson/plugins/hadoop/" />
+                <mkdir dir="${dest}" />
+                <resolveArtifact groupId="org.jvnet.hudson.hadoop" artifactId="hadoop-core"
+                                 version="${hadoop.version}" classifier="bin" type="tar.gz"
+                                 tofile="${dest}/hadoop.tar.gz"/>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>org.jvnet.hudson.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>0.19.0</version>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet.hudson.main</groupId>
+      <artifactId>hudson-war</artifactId>
+      <type>war</type>
+      <version>${hudson.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet.hudson.main</groupId>
+      <artifactId>hudson-core</artifactId>
+      <version>${hudson.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet.hudson.main</groupId>
+      <artifactId>hudson-test-harness</artifactId>
+      <version>${hudson.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <properties>
+    <hadoop.version>0.19.1</hadoop.version>
+    <hudson.version>1.292-SNAPSHOT</hudson.version>
+  </properties>
 </project>
