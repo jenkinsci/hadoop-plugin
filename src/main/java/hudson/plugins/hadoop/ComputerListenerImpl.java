@@ -67,6 +67,10 @@ public class ComputerListenerImpl extends ComputerListener {
             conf.set("dfs.datanode.http.address", "0.0.0.0:0");
             conf.set("dfs.datanode.ipc.address", "0.0.0.0:0");
 
+            // TODO: make this configurable
+            // make room for builds
+            conf.setLong("dfs.datanode.du.reserved",10L*10024*10024*10024);
+
             DataNode dn = DataNode.instantiateDataNode(new String[0],conf);
             DataNode.runDatanodeDaemon(dn);
             
