@@ -29,6 +29,7 @@ public class ComputerListenerImpl extends ComputerListener {
     public void onOnline(Computer c) {
         try {
             // TODO: shouldn't ComputerListener gets TaskListener?
+            // TODO: allow slave.host.name to be configured
             StreamTaskListener listener = new StreamTaskListener(System.out);
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
@@ -62,9 +63,9 @@ public class ComputerListenerImpl extends ComputerListener {
             Configuration conf = new Configuration();
             conf.set("fs.default.name",hdfsUrl);
             conf.set("dfs.data.dir",new File(new File(rootPath),"hadoop/datanode").getAbsolutePath());
-            conf.set("dfs.datanode.address", "127.0.0.1:0");
-            conf.set("dfs.datanode.http.address", "127.0.0.1:0");
-            conf.set("dfs.datanode.ipc.address", "127.0.0.1:0");
+            conf.set("dfs.datanode.address", "0.0.0.0:0");
+            conf.set("dfs.datanode.http.address", "0.0.0.0:0");
+            conf.set("dfs.datanode.ipc.address", "0.0.0.0:0");
 
             DataNode dn = DataNode.instantiateDataNode(new String[0],conf);
             DataNode.runDatanodeDaemon(dn);
@@ -95,9 +96,8 @@ public class ComputerListenerImpl extends ComputerListener {
             JobConf conf = new JobConf();
             conf.set("fs.default.name",hdfsUrl);
             conf.set("mapred.job.tracker",jobTrackerAddress);
-            conf.set("slave.host.name", "localhost"); // TODO
-            conf.set("mapred.task.tracker.http.address","localhost:0");
-            conf.set("mapred.task.tracker.report.address","localhost:0");
+            conf.set("mapred.task.tracker.http.address","0.0.0.0:0");
+            conf.set("mapred.task.tracker.report.address","0.0.0.0:0");
             conf.set("mapred.local.dir",new File(new File(rootPath),"hadoop/task-tracker").getAbsolutePath());
 
             new Thread(new TaskTracker(conf)).start();
