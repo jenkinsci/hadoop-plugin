@@ -8,8 +8,8 @@ import hudson.slaves.ComputerListener;
 import hudson.util.StreamTaskListener;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
-import org.apache.hadoop.mapred.TaskTracker;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.TaskTracker;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class ComputerListenerImpl extends ComputerListener {
             if(hdfsUrl !=null) {
                 Channel channel = p.createHadoopVM(listener,c.getNode().createLauncher(listener));
                 channel.call(new DataNodeStartTask(hdfsUrl,c.getNode().getRootPath().getRemote()));
-                channel.call(new TaskTrackerStartTask(hdfsUrl,c.getNode().getRootPath().getRemote()));
+                channel.call(new TaskTrackerStartTask(hdfsUrl,p.getJobTrackerAddress(),c.getNode().getRootPath().getRemote()));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,7 +60,7 @@ public class ComputerListenerImpl extends ComputerListener {
             System.out.println("Starting data node");
 
             Configuration conf = new Configuration();
-            conf.set("fs.default.name","hdfs://localhost:12300/");
+            conf.set("fs.default.name",hdfsUrl);
             conf.set("dfs.data.dir",new File(new File(rootPath),"hadoop/datanode").getAbsolutePath());
             conf.set("dfs.datanode.address", "127.0.0.1:0");
             conf.set("dfs.datanode.http.address", "127.0.0.1:0");
@@ -80,10 +80,12 @@ public class ComputerListenerImpl extends ComputerListener {
      */
     private static class TaskTrackerStartTask implements Callable<Void,IOException> {
         private final String hdfsUrl;
+        private final String jobTrackerAddress;
         private final String rootPath;
 
-        private TaskTrackerStartTask(String hdfsUrl, String rootPath) {
+        private TaskTrackerStartTask(String hdfsUrl, String jobTrackerAddress, String rootPath) {
             this.hdfsUrl = hdfsUrl;
+            this.jobTrackerAddress = jobTrackerAddress;
             this.rootPath = rootPath;
         }
 
@@ -91,8 +93,8 @@ public class ComputerListenerImpl extends ComputerListener {
             System.out.println("Starting data node");
 
             JobConf conf = new JobConf();
-            conf.set("fs.default.name","hdfs://localhost:12300/");
-            conf.set("mapred.job.tracker","localhost:22000");
+            conf.set("fs.default.name",hdfsUrl);
+            conf.set("mapred.job.tracker",jobTrackerAddress);
             conf.set("slave.host.name", "localhost"); // TODO
             conf.set("mapred.task.tracker.http.address","localhost:0");
             conf.set("mapred.task.tracker.report.address","localhost:0");
