@@ -7,6 +7,7 @@ import hudson.Proc;
 import hudson.Launcher;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
+import hudson.model.Hudson;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import hudson.remoting.Which;
@@ -25,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -33,14 +36,29 @@ public class PluginImpl extends Plugin {
     private Channel channel;
     @Override
     public void start() throws Exception {
-        // start Hadoop namenode and tracker node
-        StreamTaskListener listener = new StreamTaskListener(System.out);
-        channel = createHadoopVM(listener, new LocalLauncher(listener));
-        channel.call(new NameNodeStartTask());
-        channel.call(new JobTrackerStartTask());
+        String hdfsUrl = getHdfsUrl();
+        if(hdfsUrl!=null) {
+            // start Hadoop namenode and tracker node
+            StreamTaskListener listener = new StreamTaskListener(System.out);
+            channel = createHadoopVM(listener, new LocalLauncher(listener));
+            channel.call(new NameNodeStartTask(hdfsUrl));
+            channel.call(new JobTrackerStartTask(hdfsUrl));
+        }
     }
 
-    /*package*/ static Channel createHadoopVM(TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
+    /**
+     * Determines the HDFS URL.
+     */
+    public String getHdfsUrl() throws MalformedURLException {
+        // TODO: port should be configurable
+        String rootUrl = Hudson.getInstance().getRootUrl();
+        if(rootUrl==null)
+            return null;
+        URL url = new URL(rootUrl);
+        return "hdfs://"+url.getHost()+":9000/";
+    }
+
+    /*package*/ Channel createHadoopVM(TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
         // launch Hadoop in a new JVM and have them connect back to us
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
@@ -82,12 +100,18 @@ public class PluginImpl extends Plugin {
      * Starts a {@link NameNode}.
      */
     private static class NameNodeStartTask implements Callable<Void,Exception> {
+        private final String hdfsUrl;
+
+        private NameNodeStartTask(String hdfsUrl) {
+            this.hdfsUrl = hdfsUrl;
+        }
+
         public Void call() throws Exception {
             FileUtils.deleteDirectory(new File("/tmp/hadoop"));
             final Configuration conf = new Configuration();
 
             // location of the name node
-            conf.set("fs.default.name","hdfs://localhost:12300/");
+            conf.set("fs.default.name",hdfsUrl);
             conf.set("dfs.http.address", "0.0.0.0:12301");
             // namespace node stores information here
             conf.set("dfs.name.dir","/tmp/hadoop/namedir");
@@ -111,6 +135,12 @@ public class PluginImpl extends Plugin {
      * Starts a {@link JobTracker}.
      */
     private static class JobTrackerStartTask implements Callable<Void,Exception>, Runnable {
+        private final String hdfsUrl;
+
+        private JobTrackerStartTask(String hdfsUrl) {
+            this.hdfsUrl = hdfsUrl;
+        }
+
         private transient JobTracker tracker;
 
         public void run() {
@@ -129,7 +159,7 @@ public class PluginImpl extends Plugin {
 
 //        Configuration conf = new Configuration();
             JobConf jc = new JobConf();
-            jc.set("fs.default.name","hdfs://localhost:12300/"); // where's HDFS?
+            jc.set("fs.default.name",hdfsUrl);
             jc.set("mapred.job.tracker","localhost:22000");
             jc.set("mapred.job.tracker.http.address","0.0.0.0:22001");
             jc.set("mapred.local.dir","/tmp/hadoop/mapred");
@@ -141,5 +171,9 @@ public class PluginImpl extends Plugin {
         }
 
         private static final long serialVersionUID = 1L;
+    }
+
+    public static PluginImpl get() {
+        return Hudson.getInstance().getPlugin(PluginImpl.class);
     }
 }
