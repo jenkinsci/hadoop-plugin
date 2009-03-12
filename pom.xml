@@ -33,7 +33,7 @@
                 <property name="dest" value="${project.basedir}/target/classes/hudson/plugins/hadoop/" />
                 <mkdir dir="${dest}" />
                 <resolveArtifact groupId="org.jvnet.hudson.hadoop" artifactId="hadoop-core"
-                                 version="${hadoop.version}" classifier="bin" type="tar.gz"
+                                 version="${hadoop.version}" classifier="mini-bin" type="tar.gz"
                                  tofile="${dest}/hadoop.tar.gz"/>
               </tasks>
             </configuration>

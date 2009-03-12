@@ -4,7 +4,6 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Plugin;
 import hudson.Proc;
-import hudson.FilePath.TarCompression;
 import static hudson.FilePath.TarCompression.GZIP;
 import hudson.model.Computer;
 import hudson.model.Hudson;
@@ -60,9 +59,12 @@ public class PluginImpl extends Plugin {
     /*package*/ Channel createHadoopVM(FilePath rootDir, TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
         // install Hadoop if it's not there
         rootDir = rootDir.child("hadoop");
+        FilePath distDir = rootDir.child("dist");
+        FilePath logDir = rootDir.child("logs");
         // TODO: if the right bit is already there, don't expand
         listener.getLogger().println("Installing Hadoop binaries");
-        rootDir.untarFrom(getClass().getResourceAsStream("hadoop.tar.gz"),GZIP);
+        distDir.untarFrom(getClass().getResourceAsStream("hadoop.tar.gz"),GZIP);
+        logDir.mkdirs();
 
         // launch Hadoop in a new JVM and have them connect back to us
         ServerSocket serverSocket = new ServerSocket();
@@ -71,15 +73,14 @@ public class PluginImpl extends Plugin {
 
         ArgumentListBuilder args = new ArgumentListBuilder();
         args.add(new File(System.getProperty("java.home"),"bin/java"));
+        args.add("-Dhadoop.log.dir="+logDir.getRemote()); // without this job tracker dies with NPE
         args.add("-jar");
         args.add(Which.jarFile(Channel.class));
 
         // build up a classpath
         StringBuilder classpath = new StringBuilder();
-        File hadoopHome = new File(rootDir.getRemote());
-        // TODO: a better version selection is necessary in case Hadoop updates
-        for( String mask : new String[]{"hadoop-*/hadoop-*-core.jar","hadoop-*/lib/**/*.jar"}) {
-            for(FilePath jar : new FilePath(hadoopHome).list(mask)) {
+        for( String mask : new String[]{"hadoop-*-core.jar","lib/**/*.jar"}) {
+            for(FilePath jar : distDir.list(mask)) {
                 if(classpath.length()>0)    classpath.append(File.pathSeparatorChar);
                 classpath.append(jar.getRemote());
             }

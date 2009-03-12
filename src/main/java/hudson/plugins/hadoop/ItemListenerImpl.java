@@ -102,9 +102,6 @@ public class ItemListenerImpl extends ItemListener {
         }
 
         public Void call() throws Exception {
-            // JobTracker dies with NPE if we don't have this
-            System.setProperty("hadoop.log.dir","/tmp/hadoop/log");
-
 //        Configuration conf = new Configuration();
             JobConf jc = new JobConf();
             jc.set("fs.default.name",hdfsUrl);
