@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.Launcher.LocalLauncher;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
@@ -31,19 +32,17 @@ import java.net.MalformedURLException;
 @Extension
 public class ComputerListenerImpl extends ComputerListener {
     @Override
-    public void onOnline(Computer c) {
+    public void onOnline(Computer c, TaskListener listener) {
         try {
-            // TODO: shouldn't ComputerListener gets TaskListener?
             // TODO: allow slave.host.name to be configured
-            StreamTaskListener listener = new StreamTaskListener(System.out);
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
             if(hdfsUrl !=null)
                 c.getChannel().call(new NodeStarter(c.getNode(), listener, hdfsUrl, p));
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(listener.error("Failed to start Hadoop"));
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            e.printStackTrace(listener.error("Failed to start Hadoop"));
         }
     }
 
@@ -55,12 +54,12 @@ public class ComputerListenerImpl extends ComputerListener {
      * simplifies establishing the connection with this JVM.
      */
     private static class NodeStarter implements Callable<Void,IOException> {
-        private final StreamTaskListener listener;
+        private final TaskListener listener;
         private final String hdfsUrl;
         private final String jobTrackerAddress;
         private final FilePath rootPath;
 
-        public NodeStarter(Node n, StreamTaskListener listener, String hdfsUrl, PluginImpl p) throws MalformedURLException {
+        public NodeStarter(Node n, TaskListener listener, String hdfsUrl, PluginImpl p) throws MalformedURLException {
             this.listener = listener;
             this.hdfsUrl = hdfsUrl;
             this.jobTrackerAddress = p.getJobTrackerAddress();

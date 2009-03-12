@@ -63,9 +63,11 @@ public class PluginImpl extends Plugin {
         rootDir = new File(rootDir,"hadoop");
         File distDir = new File(rootDir,"dist");
         File logDir = new File(rootDir,"logs");
-        // TODO: if the right bit is already there, don't expand
-        listener.getLogger().println("Installing Hadoop binaries");
-        new FilePath(distDir).untarFrom(PluginImpl.class.getResourceAsStream("hadoop.tar.gz"),GZIP);
+        // TODO: do the up-to-date check based on MD5 checksum of the tgz file or something
+        if(!distDir.exists()) {
+            listener.getLogger().println("Installing Hadoop binaries");
+            new FilePath(distDir).untarFrom(PluginImpl.class.getResourceAsStream("hadoop.tar.gz"),GZIP);
+        }
         logDir.mkdirs();
 
         // launch Hadoop in a new JVM and have them connect back to us
@@ -91,6 +93,7 @@ public class PluginImpl extends Plugin {
 
         args.add("-connectTo","localhost:"+serverSocket.getLocalPort());
 
+        listener.getLogger().println("Starting Hadoop");
         Proc p = new LocalLauncher(listener).launch(args.toCommandArray(), new String[0], listener.getLogger(), null);
 
         Socket s = serverSocket.accept();
