@@ -1,12 +1,15 @@
 package hudson.plugins.hadoop;
 
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher.LocalLauncher;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
 import hudson.util.StreamTaskListener;
+import hudson.util.IOException2;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
 import org.apache.hadoop.mapred.JobConf;
@@ -14,6 +17,7 @@ import org.apache.hadoop.mapred.TaskTracker;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * When a new computer becomes online, starts a Hadoop data node and task tracker.
@@ -34,17 +38,48 @@ public class ComputerListenerImpl extends ComputerListener {
             StreamTaskListener listener = new StreamTaskListener(System.out);
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
-            if(hdfsUrl !=null) {
-                Node n = c.getNode();
-                Channel channel = p.createHadoopVM(n.getRootPath(), listener, n.createLauncher(listener));
-                channel.call(new DataNodeStartTask(hdfsUrl, n.getRootPath().getRemote()));
-                channel.call(new TaskTrackerStartTask(hdfsUrl,p.getJobTrackerAddress(), n.getRootPath().getRemote()));
-            }
+            if(hdfsUrl !=null)
+                c.getChannel().call(new NodeStarter(c.getNode(), listener, hdfsUrl, p));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Runs in the slave JVM to start Hadoop JVM.
+     *
+     * <p>
+     * Doing this from the slave JVM and not from the master JVM
+     * simplifies establishing the connection with this JVM.
+     */
+    private static class NodeStarter implements Callable<Void,IOException> {
+        private final StreamTaskListener listener;
+        private final String hdfsUrl;
+        private final String jobTrackerAddress;
+        private final FilePath rootPath;
+
+        public NodeStarter(Node n, StreamTaskListener listener, String hdfsUrl, PluginImpl p) throws MalformedURLException {
+            this.listener = listener;
+            this.hdfsUrl = hdfsUrl;
+            this.jobTrackerAddress = p.getJobTrackerAddress();
+            this.rootPath = n.getRootPath();
+        }
+
+        @Override
+        public Void call() throws IOException {
+            try {
+                Channel channel = PluginImpl.createHadoopVM(new File(rootPath.getRemote()), listener);
+                channel.call(new DataNodeStartTask(hdfsUrl, rootPath.getRemote()));
+                channel.call(new TaskTrackerStartTask(hdfsUrl, jobTrackerAddress, rootPath.getRemote()));
+                return null;
+            } catch (InterruptedException e) {
+                throw new IOException2(e);
+            }
+        }
+
+        private static final long serialVersionUID = 1L;
     }
 
     /**

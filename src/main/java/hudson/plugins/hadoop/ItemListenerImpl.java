@@ -31,7 +31,7 @@ public class ItemListenerImpl extends ItemListener {
             if(hdfsUrl!=null) {
                 // start Hadoop namenode and tracker node
                 StreamTaskListener listener = new StreamTaskListener(System.out);
-                p.channel = p.createHadoopVM(Hudson.getInstance().getRootPath(), listener, new LocalLauncher(listener));
+                p.channel = PluginImpl.createHadoopVM(Hudson.getInstance().getRootPath(), listener);
                 p.channel.call(new NameNodeStartTask(hdfsUrl));
                 p.channel.call(new JobTrackerStartTask(hdfsUrl,p.getJobTrackerAddress()));
             } else {

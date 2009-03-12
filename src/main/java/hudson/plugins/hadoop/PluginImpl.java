@@ -1,9 +1,9 @@
 package hudson.plugins.hadoop;
 
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.Plugin;
 import hudson.Proc;
+import hudson.Launcher.LocalLauncher;
 import static hudson.FilePath.TarCompression.GZIP;
 import hudson.model.Computer;
 import hudson.model.Hudson;
@@ -53,17 +53,19 @@ public class PluginImpl extends Plugin {
     }
 
     /**
+     * Launches Hadoop in a separate JVM.
+     *
      * @param rootDir
      *      The slave/master root.
      */
-    /*package*/ Channel createHadoopVM(FilePath rootDir, TaskListener listener, Launcher launcher) throws IOException, InterruptedException {
+    static /*package*/ Channel createHadoopVM(File rootDir, TaskListener listener) throws IOException, InterruptedException {
         // install Hadoop if it's not there
-        rootDir = rootDir.child("hadoop");
-        FilePath distDir = rootDir.child("dist");
-        FilePath logDir = rootDir.child("logs");
+        rootDir = new File(rootDir,"hadoop");
+        File distDir = new File(rootDir,"dist");
+        File logDir = new File(rootDir,"logs");
         // TODO: if the right bit is already there, don't expand
         listener.getLogger().println("Installing Hadoop binaries");
-        distDir.untarFrom(getClass().getResourceAsStream("hadoop.tar.gz"),GZIP);
+        new FilePath(distDir).untarFrom(PluginImpl.class.getResourceAsStream("hadoop.tar.gz"),GZIP);
         logDir.mkdirs();
 
         // launch Hadoop in a new JVM and have them connect back to us
@@ -73,14 +75,14 @@ public class PluginImpl extends Plugin {
 
         ArgumentListBuilder args = new ArgumentListBuilder();
         args.add(new File(System.getProperty("java.home"),"bin/java"));
-        args.add("-Dhadoop.log.dir="+logDir.getRemote()); // without this job tracker dies with NPE
+        args.add("-Dhadoop.log.dir="+logDir); // without this job tracker dies with NPE
         args.add("-jar");
         args.add(Which.jarFile(Channel.class));
 
         // build up a classpath
         StringBuilder classpath = new StringBuilder();
         for( String mask : new String[]{"hadoop-*-core.jar","lib/**/*.jar"}) {
-            for(FilePath jar : distDir.list(mask)) {
+            for(FilePath jar : new FilePath(distDir).list(mask)) {
                 if(classpath.length()>0)    classpath.append(File.pathSeparatorChar);
                 classpath.append(jar.getRemote());
             }
@@ -89,7 +91,7 @@ public class PluginImpl extends Plugin {
 
         args.add("-connectTo","localhost:"+serverSocket.getLocalPort());
 
-        Proc p = launcher.launch(args.toCommandArray(), new String[0], listener.getLogger(), null);
+        Proc p = new LocalLauncher(listener).launch(args.toCommandArray(), new String[0], listener.getLogger(), null);
 
         Socket s = serverSocket.accept();
         serverSocket.close();
