@@ -67,4 +67,8 @@ public class HadoopPage extends AbstractModelObject implements Action {
         URL url = new URL(Hudson.getInstance().getRootUrl());
         return new URL("http://"+url.getHost()+":"+JobTrackerStartTask.HTTP_PORT+"/");
     }
+
+    public PluginImpl getPlugin() {
+        return PluginImpl.get();
+    }
 }

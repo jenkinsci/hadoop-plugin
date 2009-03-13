@@ -25,14 +25,35 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <l:layout title="Hadoop">
     <l:main-panel>
-      <h1>Hadoop</h1>
+      <div>
+        <img src="http://hadoop.apache.org/images/hadoop-logo.jpg" alt="Hadoop Logo"/>
+      </div>
 
       <p>
-        This Hudson cluster also runs as Hadoop cluster.
+        This Hudson cluster also acts as Hadoop cluster.
       </p>
 
-      <h2><a href="${it.getHdfsHttpURL()}">HDFS status</a></h2>
-      <h2><a href="${it.getJobTrackerURL()}">Job tracker status</a></h2>
+      <ul>
+        <li><a href="${it.getHdfsHttpURL()}">HDFS status</a></li>
+        <li><a href="${it.getJobTrackerURL()}">Job tracker status</a></li>
+      </ul>
+
+      <h2>Accessing this Hadoop</h2>
+      <p>
+        To access this Hadoop, your <tt>hadoop-site.xml</tt> should contain the following entries:
+      </p>
+      <pre><xmp><![CDATA[
+<configuration>
+  <property>
+    <name>fs.default.name</name>
+    <value>${it.plugin.getHdfsUrl()}</value>
+  </property>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>${it.plugin.getJobTrackerAddress()}</value>
+  </property>
+</configuration>
+      ]]></xmp></pre>
     </l:main-panel>
   </l:layout>
 </j:jelly>
