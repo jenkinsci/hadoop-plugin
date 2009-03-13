@@ -23,37 +23,48 @@
  */
 package hudson.plugins.hadoop;
 
-import hudson.Extension;
-import hudson.model.Computer;
-import hudson.model.TaskListener;
-import hudson.slaves.ComputerListener;
+import hudson.model.AbstractModelObject;
+import hudson.model.Action;
+import hudson.model.Hudson;
 
-import java.io.IOException;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
- * When a new computer becomes online, starts a Hadoop data node and task tracker.
- *
- * <p>
- * This will be done on a separate JVM to allow administrators to control the JVM parameters better.
- * This JVM automatically kills itself when the slave JVM gets disconnected.
+ * Top-level Hadoop page that gets added to Hudson.
  *
  * @author Kohsuke Kawaguchi
  */
-@Extension
-public class ComputerListenerImpl extends ComputerListener {
-    @Override
-    public void onOnline(Computer c, TaskListener listener) {
-        try {
-            // TODO: allow slave.host.name to be configured
-            PluginImpl p = PluginImpl.get();
-            String hdfsUrl = p.getHdfsUrl();
-            if(hdfsUrl !=null)
-                c.getChannel().call(new NodeStarter(c.getNode(), listener, hdfsUrl, p));
-        } catch (IOException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
-        } catch (InterruptedException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
-        }
+public class HadoopPage extends AbstractModelObject implements Action {
+    public String getDisplayName() {
+        return "Hadoop";
     }
 
+    public String getSearchUrl() {
+        return "hadoop";
+    }
+
+    public String getIconFileName() {
+        return "star-gold.gif";
+    }
+
+    public String getUrlName() {
+        return "hadoop";
+    }
+
+    /**
+     * Returns the URL of the HDFS HTTP interface.
+     */
+    public URL getHdfsHttpURL() throws MalformedURLException {
+        URL url = new URL(Hudson.getInstance().getRootUrl());
+        return new URL("http://"+url.getHost()+":"+NameNodeStartTask.HTTP_PORT+"/");
+    }
+
+    /**
+     * Returns the URL of the job tracker HTTP interface.
+     */
+    public URL getJobTrackerURL() throws MalformedURLException {
+        URL url = new URL(Hudson.getInstance().getRootUrl());
+        return new URL("http://"+url.getHost()+":"+JobTrackerStartTask.HTTP_PORT+"/");
+    }
 }

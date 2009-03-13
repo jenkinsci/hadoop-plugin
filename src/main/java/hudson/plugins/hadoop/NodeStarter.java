@@ -21,39 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package hudson.plugins.hadoop;
 
-import hudson.Extension;
-import hudson.model.Computer;
+import hudson.FilePath;
+import hudson.model.Node;
 import hudson.model.TaskListener;
-import hudson.slaves.ComputerListener;
+import hudson.remoting.Callable;
+import hudson.remoting.Channel;
+import hudson.util.IOException2;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
- * When a new computer becomes online, starts a Hadoop data node and task tracker.
+ * Runs in the slave JVM to start Hadoop JVM.
  *
  * <p>
- * This will be done on a separate JVM to allow administrators to control the JVM parameters better.
- * This JVM automatically kills itself when the slave JVM gets disconnected.
- *
- * @author Kohsuke Kawaguchi
+ * Doing this from the slave JVM and not from the master JVM
+ * simplifies establishing the connection with this JVM.
  */
-@Extension
-public class ComputerListenerImpl extends ComputerListener {
+class NodeStarter implements Callable<Void,IOException> {
+    private final TaskListener listener;
+    private final String hdfsUrl;
+    private final String jobTrackerAddress;
+    private final FilePath rootPath;
+
+    public NodeStarter(Node n, TaskListener listener, String hdfsUrl, PluginImpl p) throws MalformedURLException {
+        this.listener = listener;
+        this.hdfsUrl = hdfsUrl;
+        this.jobTrackerAddress = p.getJobTrackerAddress();
+        this.rootPath = n.getRootPath();
+    }
+
     @Override
-    public void onOnline(Computer c, TaskListener listener) {
+    public Void call() throws IOException {
         try {
-            // TODO: allow slave.host.name to be configured
-            PluginImpl p = PluginImpl.get();
-            String hdfsUrl = p.getHdfsUrl();
-            if(hdfsUrl !=null)
-                c.getChannel().call(new NodeStarter(c.getNode(), listener, hdfsUrl, p));
-        } catch (IOException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
+            Channel channel = PluginImpl.createHadoopVM(new File(rootPath.getRemote()), listener);
+            channel.call(new DataNodeStartTask(hdfsUrl, rootPath.getRemote()));
+            channel.call(new TaskTrackerStartTask(hdfsUrl, jobTrackerAddress, rootPath.getRemote()));
+            return null;
         } catch (InterruptedException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
+            throw new IOException2(e);
         }
     }
 
+    private static final long serialVersionUID = 1L;
 }

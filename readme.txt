@@ -4,5 +4,5 @@ TODO:
    if that fails, revert to IP.
  - name node and job tracker only binds to the IP specified in HDFS URL
    -> this cannot be fixed
- - don't format HDFS too eagerly
- - namenode and job tracker is hard-coded to /tmp/hadoop
+
+ - support namenode/jobtracker outside Hudson

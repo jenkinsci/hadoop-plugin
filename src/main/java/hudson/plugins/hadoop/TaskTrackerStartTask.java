@@ -21,39 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package hudson.plugins.hadoop;
 
-import hudson.Extension;
-import hudson.model.Computer;
-import hudson.model.TaskListener;
-import hudson.slaves.ComputerListener;
+import hudson.remoting.Callable;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.TaskTracker;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
- * When a new computer becomes online, starts a Hadoop data node and task tracker.
- *
- * <p>
- * This will be done on a separate JVM to allow administrators to control the JVM parameters better.
- * This JVM automatically kills itself when the slave JVM gets disconnected.
- *
- * @author Kohsuke Kawaguchi
+ * Starts a {@link TaskTracker}.
  */
-@Extension
-public class ComputerListenerImpl extends ComputerListener {
-    @Override
-    public void onOnline(Computer c, TaskListener listener) {
-        try {
-            // TODO: allow slave.host.name to be configured
-            PluginImpl p = PluginImpl.get();
-            String hdfsUrl = p.getHdfsUrl();
-            if(hdfsUrl !=null)
-                c.getChannel().call(new NodeStarter(c.getNode(), listener, hdfsUrl, p));
-        } catch (IOException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
-        } catch (InterruptedException e) {
-            e.printStackTrace(listener.error("Failed to start Hadoop"));
-        }
+class TaskTrackerStartTask implements Callable<Void,IOException> {
+    private final String hdfsUrl;
+    private final String jobTrackerAddress;
+    private final String rootPath;
+
+    TaskTrackerStartTask(String hdfsUrl, String jobTrackerAddress, String rootPath) {
+        this.hdfsUrl = hdfsUrl;
+        this.jobTrackerAddress = jobTrackerAddress;
+        this.rootPath = rootPath;
     }
 
+    public Void call() throws IOException {
+        System.out.println("Starting data node");
+
+        JobConf conf = new JobConf();
+        conf.set("fs.default.name",hdfsUrl);
+        conf.set("mapred.job.tracker",jobTrackerAddress);
+        conf.set("mapred.task.tracker.http.address","0.0.0.0:0");
+        conf.set("mapred.task.tracker.report.address","0.0.0.0:0");
+        conf.set("mapred.local.dir",new File(new File(rootPath),"hadoop/task-tracker").getAbsolutePath());
+
+        new Thread(new TaskTracker(conf)).start();
+
+        return null;
+    }
+
+    private static final long serialVersionUID = 1L;
 }
