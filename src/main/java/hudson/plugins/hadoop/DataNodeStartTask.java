@@ -23,7 +23,6 @@
  */
 package hudson.plugins.hadoop;
 
-import hudson.remoting.Callable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
 
@@ -33,13 +32,9 @@ import java.io.IOException;
 /**
  * Starts a {@link DataNode}.
  */
-class DataNodeStartTask implements Callable<Void,IOException> {
-    private final String hdfsUrl;
-    private final String rootPath;
-
-    DataNodeStartTask(String hdfsUrl, String rootPath) {
-        this.hdfsUrl = hdfsUrl;
-        this.rootPath = rootPath;
+class DataNodeStartTask extends SlaveTask {
+    DataNodeStartTask(String hdfsUrl, String rootPath, String address) {
+        super(hdfsUrl, rootPath, address);
     }
 
     public Void call() throws IOException {
@@ -51,6 +46,7 @@ class DataNodeStartTask implements Callable<Void,IOException> {
         conf.set("dfs.datanode.address", "0.0.0.0:0");
         conf.set("dfs.datanode.http.address", "0.0.0.0:0");
         conf.set("dfs.datanode.ipc.address", "0.0.0.0:0");
+        conf.set("slave.host.name", slaveHostName);
 
         // TODO: make this configurable
         // make room for builds

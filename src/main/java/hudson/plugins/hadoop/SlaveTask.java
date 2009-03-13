@@ -24,37 +24,24 @@
 
 package hudson.plugins.hadoop;
 
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.TaskTracker;
+import hudson.remoting.Callable;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
- * Starts a {@link TaskTracker}.
+ * A task to be run on a slave
+ *
+ * @author Kohsuke Kawaguchi
  */
-class TaskTrackerStartTask extends SlaveTask {
-    private final String jobTrackerAddress;
+abstract class SlaveTask implements Callable<Void,IOException> {
+    protected final String hdfsUrl;
+    protected final String rootPath;
+    protected final String slaveHostName;
 
-    TaskTrackerStartTask(String hdfsUrl, String rootPath, String address, String jobTrackerAddress) {
-        super(hdfsUrl, rootPath, address);
-        this.jobTrackerAddress = jobTrackerAddress;
-    }
-
-    public Void call() throws IOException {
-        System.out.println("Starting data node");
-
-        JobConf conf = new JobConf();
-        conf.set("fs.default.name",hdfsUrl);
-        conf.set("mapred.job.tracker",jobTrackerAddress);
-        conf.set("mapred.task.tracker.http.address","0.0.0.0:0");
-        conf.set("mapred.task.tracker.report.address","0.0.0.0:0");
-        conf.set("mapred.local.dir",new File(new File(rootPath),"hadoop/task-tracker").getAbsolutePath());
-        conf.set("slave.host.name", slaveHostName);
-
-        new Thread(new TaskTracker(conf)).start();
-
-        return null;
+    protected SlaveTask(String hdfsUrl, String rootPath, String slaveHostName) {
+        this.hdfsUrl = hdfsUrl;
+        this.rootPath = rootPath;
+        this.slaveHostName = slaveHostName;
     }
 
     private static final long serialVersionUID = 1L;

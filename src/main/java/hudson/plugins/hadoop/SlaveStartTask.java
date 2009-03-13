@@ -24,48 +24,44 @@
 
 package hudson.plugins.hadoop;
 
-import hudson.FilePath;
-import hudson.model.Node;
-import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
+import hudson.FilePath;
 import hudson.util.IOException2;
+import hudson.model.TaskListener;
+import hudson.model.Computer;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 
 /**
- * Runs in the slave JVM to start Hadoop JVM.
- *
- * <p>
- * Doing this from the slave JVM and not from the master JVM
- * simplifies establishing the connection with this JVM.
- */
-class NodeStarter implements Callable<Void,IOException> {
+ * @author Kohsuke Kawaguchi
+*/
+class SlaveStartTask implements Callable<Void,IOException> {
+    private final FilePath rootPath;
     private final TaskListener listener;
     private final String hdfsUrl;
     private final String jobTrackerAddress;
-    private final FilePath rootPath;
+    private final String address;
 
-    public NodeStarter(Node n, TaskListener listener, String hdfsUrl, PluginImpl p) throws MalformedURLException {
+    public SlaveStartTask(Computer c, TaskListener listener, String hdfsUrl, String address) throws MalformedURLException {
+        this.rootPath = c.getNode().getRootPath();
         this.listener = listener;
         this.hdfsUrl = hdfsUrl;
-        this.jobTrackerAddress = p.getJobTrackerAddress();
-        this.rootPath = n.getRootPath();
+        this.jobTrackerAddress = PluginImpl.get().getJobTrackerAddress();
+        this.address = address;
     }
 
     @Override
     public Void call() throws IOException {
         try {
             Channel channel = PluginImpl.createHadoopVM(new File(rootPath.getRemote()), listener);
-            channel.call(new DataNodeStartTask(hdfsUrl, rootPath.getRemote()));
-            channel.call(new TaskTrackerStartTask(hdfsUrl, jobTrackerAddress, rootPath.getRemote()));
+            channel.call(new DataNodeStartTask(hdfsUrl, rootPath.getRemote(), address));
+            channel.call(new TaskTrackerStartTask(hdfsUrl, rootPath.getRemote(), address, jobTrackerAddress));
             return null;
         } catch (InterruptedException e) {
             throw new IOException2(e);
         }
     }
-
-    private static final long serialVersionUID = 1L;
 }
