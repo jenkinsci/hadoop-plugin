@@ -83,7 +83,7 @@ public class ComputerListenerImpl extends ComputerListener {
             try {
                 InetAddress ia = InetAddress.getByName(address);
                 if(ia.isReachable(500))
-                    return ia.getHostName();
+                    return ia.getCanonicalHostName();
             } catch (IOException e) {
                 // if a given name fails to parse on this host, we get this error
                 LOGGER.log(Level.FINE, "Failed to parse "+address,e);
