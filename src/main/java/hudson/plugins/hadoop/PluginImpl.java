@@ -154,7 +154,7 @@ public class PluginImpl extends Plugin {
     }
 
     private static String getHadoopTarGzMd5() throws IOException {
-        InputStream in = PluginImpl.class.getResourceAsStream("hadoop.tar.gz.md5");
+        InputStream in = PluginImpl.class.getResourceAsStream("hadoop.tar.gz.MD5");
         try {
             return IOUtils.toString(in);
         } finally {
