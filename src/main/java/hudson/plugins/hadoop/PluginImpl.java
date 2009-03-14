@@ -41,10 +41,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Hadoop plugin.
@@ -94,10 +98,12 @@ public class PluginImpl extends Plugin {
         rootDir = new File(rootDir,"hadoop");
         File distDir = new File(rootDir,"dist");
         File logDir = new File(rootDir,"logs");
-        // TODO: do the up-to-date check based on MD5 checksum of the tgz file or something
-        if(!distDir.exists()) {
+        if(shouldInstallBinary(distDir)) {
             listener.getLogger().println("Installing Hadoop binaries");
+            if(distDir.exists())
+                new FilePath(distDir).deleteContents();
             new FilePath(distDir).untarFrom(PluginImpl.class.getResourceAsStream("hadoop.tar.gz"),GZIP);
+            FileUtils.writeStringToFile(new File(distDir,"MD5"),getHadoopTarGzMd5());
         }
         logDir.mkdirs();
 
@@ -132,6 +138,28 @@ public class PluginImpl extends Plugin {
 
         return Channels.forProcess("Channel to Hadoop", Computer.threadPoolForRemoting,
                 new BufferedInputStream(s.getInputStream()), new BufferedOutputStream(s.getOutputStream()), p);
+    }
+
+    private static boolean shouldInstallBinary(File distDir) throws IOException {
+        if(!distDir.exists())   return true;
+
+        File checksum = new File(distDir, "MD5");
+        if(checksum.exists()) {
+            String md5 = FileUtils.readFileToString(checksum);
+            if(md5.equals(getHadoopTarGzMd5()))
+                return false;   // correct
+        }
+
+        return true;
+    }
+
+    private static String getHadoopTarGzMd5() throws IOException {
+        InputStream in = PluginImpl.class.getResourceAsStream("hadoop.tar.gz.md5");
+        try {
+            return IOUtils.toString(in);
+        } finally {
+            in.close();
+        }
     }
 
     @Override

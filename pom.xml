@@ -35,6 +35,8 @@
                 <resolveArtifact groupId="org.jvnet.hudson.hadoop" artifactId="hadoop-core"
                                  version="${hadoop.version}" classifier="mini-bin" type="tar.gz"
                                  tofile="${dest}/hadoop.tar.gz"/>
+                <!-- checksum used for up-to-date check -->
+                <checksum file="${dest}/hadoop.tar.gz" />
               </tasks>
             </configuration>
           </execution>
