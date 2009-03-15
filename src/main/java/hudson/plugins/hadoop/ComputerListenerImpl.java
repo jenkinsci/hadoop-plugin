@@ -95,10 +95,6 @@ public class ComputerListenerImpl extends ComputerListener {
     private static class ListPossibleNames implements Callable<List<String>,IOException> {
         public List<String> call() throws IOException {
             List<String> names = new ArrayList<String>();
-            List<String> ips = new ArrayList<String>();
-            InetAddress localHost = InetAddress.getLocalHost();
-            if(!localHost.isLoopbackAddress())
-                names.add(localHost.getCanonicalHostName());
 
             Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
             while (nis.hasMoreElements()) {
@@ -107,11 +103,9 @@ public class ComputerListenerImpl extends ComputerListener {
                 while (e.hasMoreElements()) {
                     InetAddress ia =  e.nextElement();
                     if(ia.isLoopbackAddress())  continue;
-                    names.add(ia.getCanonicalHostName());
-                    ips.add(ia.getHostAddress());
+                    names.add(ia.getHostAddress());
                 }
             }
-            names.addAll(ips);
             return names;
         }
         private static final long serialVersionUID = 1L;
