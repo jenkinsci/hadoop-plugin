@@ -9,7 +9,7 @@
   </parent>
   
   <artifactId>hadoop</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Hudson Hadoop plugin</name>
   <url>http://hudson.gotdns.com/wiki/display/HUDSON/Hadoop+Plugin</url>
@@ -55,10 +55,4 @@
     <hadoop.version>0.19.1-hudson-2</hadoop.version>
     <hudson.version>1.292-SNAPSHOT</hudson.version>
   </properties>
-
-  <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/hadoop-1.0</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/hadoop-1.0</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/hadoop/tags/hadoop-1.0</url>
-  </scm>
 </project>
