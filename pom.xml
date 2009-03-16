@@ -9,7 +9,7 @@
   </parent>
   
   <artifactId>hadoop</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>hpi</packaging>
   <name>Hudson Hadoop plugin</name>
   <url>http://hudson.gotdns.com/wiki/display/HUDSON/Hadoop+Plugin</url>
@@ -32,9 +32,7 @@
               <tasks>
                 <property name="dest" value="${project.basedir}/target/classes/hudson/plugins/hadoop/" />
                 <mkdir dir="${dest}" />
-                <resolveArtifact groupId="org.jvnet.hudson.hadoop" artifactId="hadoop-core"
-                                 version="${hadoop.version}" classifier="mini-bin" type="tar.gz"
-                                 tofile="${dest}/hadoop.tar.gz"/>
+                <resolveArtifact groupId="org.jvnet.hudson.hadoop" artifactId="hadoop-core" version="${hadoop.version}" classifier="mini-bin" type="tar.gz" tofile="${dest}/hadoop.tar.gz" />
                 <!-- checksum used for up-to-date check -->
                 <checksum file="${dest}/hadoop.tar.gz" />
               </tasks>
@@ -57,4 +55,10 @@
     <hadoop.version>0.19.1-hudson-2</hadoop.version>
     <hudson.version>1.292-SNAPSHOT</hudson.version>
   </properties>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/hadoop-1.0</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/hadoop-1.0</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/hadoop/tags/hadoop-1.0</url>
+  </scm>
 </project>
