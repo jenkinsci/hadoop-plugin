@@ -79,7 +79,7 @@
   </dependencies>
 
   <properties>
-    <hadoop.version>0.19.1-hudson-1</hadoop.version>
+    <hadoop.version>0.19.1-hudson-2</hadoop.version>
     <hudson.version>1.292-SNAPSHOT</hudson.version>
   </properties>
 </project>
