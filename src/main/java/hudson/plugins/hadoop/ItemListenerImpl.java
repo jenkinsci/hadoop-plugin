@@ -48,7 +48,11 @@ public class ItemListenerImpl extends ItemListener {
                 File root = Hudson.getInstance().getRootDir();
                 p.channel = PluginImpl.createHadoopVM(root, listener);
                 p.channel.call(new NameNodeStartTask(root, hdfsUrl));
-                p.channel.call(new JobTrackerStartTask(root, hdfsUrl,p.getJobTrackerAddress()));
+                /*
+                    I encountered a problem once that HDFS doesn't exit a safe mode by itself, causing Hudson to hang in the boot.
+                    So I'm doing this asynchronously now.
+                 */
+                p.channel.callAsync(new JobTrackerStartTask(root, hdfsUrl,p.getJobTrackerAddress()));
             } else {
                 LOGGER.info("Skipping Hadoop initialization because we don't know the root URL.");
             }
