@@ -46,9 +46,12 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.InetSocketAddress;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.conf.Configuration;
 
 /**
  * Hadoop plugin.
@@ -67,12 +70,28 @@ public class PluginImpl extends Plugin {
      * Determines the HDFS URL.
      */
     public String getHdfsUrl() throws MalformedURLException {
+        InetSocketAddress a = getHdfsAddress();
+        if(a==null)     return null;
+        return "hdfs://"+a.getHostName()+":"+a.getPort()+"/";
+    }
+
+    /**
+     * Determines the HDFS connection endpoint.
+     */
+    public InetSocketAddress getHdfsAddress() throws MalformedURLException {
         // TODO: port should be configurable
         String rootUrl = Hudson.getInstance().getRootUrl();
         if(rootUrl==null)
             return null;
         URL url = new URL(rootUrl);
-        return "hdfs://"+url.getHost()+":9000/";
+        return new InetSocketAddress(url.getHost(),9000);
+    }
+
+    /**
+     * Connects to this HDFS.
+     */
+    public DFSClient createDFSClient() throws IOException {
+        return new DFSClient(getHdfsAddress(),new Configuration(false));
     }
 
     /**
