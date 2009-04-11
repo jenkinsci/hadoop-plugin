@@ -36,6 +36,7 @@ import hudson.remoting.Channel;
 import hudson.remoting.Which;
 import hudson.slaves.Channels;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.ClasspathBuilder;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -47,6 +48,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
@@ -115,70 +117,15 @@ public class PluginImpl extends Plugin {
     static /*package*/ Channel createHadoopVM(File rootDir, TaskListener listener) throws IOException, InterruptedException {
         // install Hadoop if it's not there
         rootDir = new File(rootDir,"hadoop");
-        File distDir = new File(rootDir,"dist");
+        FilePath distDir = new FilePath(new File(rootDir,"dist"));
+        distDir.installIfNecessaryFrom(PluginImpl.class.getResource("hadoop.tar.gz"),listener,"Hadoop");
+
         File logDir = new File(rootDir,"logs");
-        if(shouldInstallBinary(distDir)) {
-            listener.getLogger().println("Installing Hadoop binaries");
-            if(distDir.exists())
-                new FilePath(distDir).deleteContents();
-            new FilePath(distDir).untarFrom(PluginImpl.class.getResourceAsStream("hadoop.tar.gz"),GZIP);
-            FileUtils.writeStringToFile(new File(distDir,"MD5"),getHadoopTarGzMd5());
-        }
         logDir.mkdirs();
 
-        // launch Hadoop in a new JVM and have them connect back to us
-        ServerSocket serverSocket = new ServerSocket();
-        serverSocket.bind(null);
-        serverSocket.setSoTimeout(10*1000);
-
-        ArgumentListBuilder args = new ArgumentListBuilder();
-        args.add(new File(System.getProperty("java.home"),"bin/java"));
-        args.add("-Dhadoop.log.dir="+logDir); // without this job tracker dies with NPE
-        args.add("-jar");
-        args.add(Which.jarFile(Channel.class));
-
-        // build up a classpath
-        StringBuilder classpath = new StringBuilder();
-        for( String mask : new String[]{"hadoop-*-core.jar","lib/**/*.jar"}) {
-            for(FilePath jar : new FilePath(distDir).list(mask)) {
-                if(classpath.length()>0)    classpath.append(File.pathSeparatorChar);
-                classpath.append(jar.getRemote());
-            }
-        }
-        args.add("-cp").add(classpath);
-
-        args.add("-connectTo","localhost:"+serverSocket.getLocalPort());
-
-        listener.getLogger().println("Starting Hadoop");
-        Proc p = new LocalLauncher(listener).launch(args.toCommandArray(), new String[0], listener.getLogger(), null);
-
-        Socket s = serverSocket.accept();
-        serverSocket.close();
-
-        return Channels.forProcess("Channel to Hadoop", Computer.threadPoolForRemoting,
-                new BufferedInputStream(s.getInputStream()), new BufferedOutputStream(s.getOutputStream()), p);
-    }
-
-    private static boolean shouldInstallBinary(File distDir) throws IOException {
-        if(!distDir.exists())   return true;
-
-        File checksum = new File(distDir, "MD5");
-        if(checksum.exists()) {
-            String md5 = FileUtils.readFileToString(checksum);
-            if(md5.equals(getHadoopTarGzMd5()))
-                return false;   // correct
-        }
-
-        return true;
-    }
-
-    private static String getHadoopTarGzMd5() throws IOException {
-        InputStream in = PluginImpl.class.getResourceAsStream("hadoop.tar.gz.MD5");
-        try {
-            return IOUtils.toString(in);
-        } finally {
-            in.close();
-        }
+        return Channels.newJVM("Hadoop",listener,null,
+                new ClasspathBuilder().addAll(distDir,"hadoop-*-core.jar").addAll(distDir,"lib/**/*.jar"),
+                Collections.singletonMap("hadoop.log.dir",logDir.getAbsolutePath()));
     }
 
     @Override

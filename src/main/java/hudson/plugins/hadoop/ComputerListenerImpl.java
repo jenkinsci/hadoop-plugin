@@ -55,7 +55,7 @@ public class ComputerListenerImpl extends ComputerListener {
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
             if(hdfsUrl !=null) {
-                String address = decideAddress(c);
+                String address = c.getHostName();
                 if(address==null)
                     listener.getLogger().println("Unable to determine the hostname/IP address of this system. Skipping Hadoop deployment");
                 else
@@ -66,49 +66,6 @@ public class ComputerListenerImpl extends ComputerListener {
         } catch (InterruptedException e) {
             e.printStackTrace(listener.error("Failed to start Hadoop"));
         }
-    }
-
-
-    /**
-     * Hadoop needs each node to have a name that's reachable by all the other nodes,
-     * yet it's surprisingly tricky for a machine to know a name that other systems can get to,
-     * especially between things like DNS search suffix, the hosts file, and YP.
-     *
-     * <p>
-     * So the technique here is to compute possible interfaces and names on the slave,
-     * then try to ping them from the master, and pick the one that worked.
-     */
-    private String decideAddress(Computer c) throws IOException, InterruptedException {
-        for( String address : c.getChannel().call(new ListPossibleNames())) {
-            try {
-                InetAddress ia = InetAddress.getByName(address);
-                if(ia.isReachable(500))
-                    return ia.getCanonicalHostName();
-            } catch (IOException e) {
-                // if a given name fails to parse on this host, we get this error
-                LOGGER.log(Level.FINE, "Failed to parse "+address,e);
-            }
-        }
-        return null;
-    }
-
-    private static class ListPossibleNames implements Callable<List<String>,IOException> {
-        public List<String> call() throws IOException {
-            List<String> names = new ArrayList<String>();
-
-            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni =  nis.nextElement();
-                Enumeration<InetAddress> e = ni.getInetAddresses();
-                while (e.hasMoreElements()) {
-                    InetAddress ia =  e.nextElement();
-                    if(ia.isLoopbackAddress())  continue;
-                    names.add(ia.getHostAddress());
-                }
-            }
-            return names;
-        }
-        private static final long serialVersionUID = 1L;
     }
 
     private static final Logger LOGGER = Logger.getLogger(ComputerListenerImpl.class.getName());
