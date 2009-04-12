@@ -27,8 +27,8 @@ import hudson.model.AbstractModelObject;
 import hudson.model.Action;
 import hudson.model.Hudson;
 
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Top-level Hadoop page that gets added to Hudson.

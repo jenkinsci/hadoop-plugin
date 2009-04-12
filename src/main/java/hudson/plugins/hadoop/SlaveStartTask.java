@@ -24,15 +24,15 @@
 
 package hudson.plugins.hadoop;
 
+import hudson.FilePath;
+import hudson.model.Computer;
+import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
-import hudson.FilePath;
 import hudson.util.IOException2;
-import hudson.model.TaskListener;
-import hudson.model.Computer;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
 /**

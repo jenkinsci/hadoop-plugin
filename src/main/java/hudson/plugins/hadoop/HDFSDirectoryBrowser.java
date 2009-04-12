@@ -2,26 +2,12 @@ package hudson.plugins.hadoop;
 
 import hudson.model.DirectoryBrowserSupport;
 import org.apache.hadoop.hdfs.DFSClient;
-import org.apache.hadoop.hdfs.protocol.LocatedBlock;
-import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
-import org.apache.hadoop.hdfs.server.namenode.JspHelper;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FsShell;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import java.net.InetSocketAddress;
-import java.net.InetAddress;
-import java.net.URLEncoder;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.File;
-import java.util.List;
 
 /**
  * Renders HDFS directory like {@link DirectoryBrowserSupport}.

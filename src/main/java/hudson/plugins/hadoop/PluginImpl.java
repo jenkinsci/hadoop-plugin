@@ -25,35 +25,21 @@
 package hudson.plugins.hadoop;
 
 import hudson.FilePath;
-import static hudson.FilePath.TarCompression.GZIP;
-import hudson.Launcher.LocalLauncher;
 import hudson.Plugin;
-import hudson.Proc;
-import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
-import hudson.remoting.Which;
 import hudson.slaves.Channels;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.ClasspathBuilder;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hdfs.DFSClient;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.hdfs.DFSClient;
-import org.apache.hadoop.conf.Configuration;
 
 /**
  * Hadoop plugin.
