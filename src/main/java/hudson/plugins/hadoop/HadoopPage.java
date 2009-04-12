@@ -45,11 +45,11 @@ public class HadoopPage extends AbstractModelObject implements Action {
     }
 
     public String getIconFileName() {
-        return "star-gold.gif";
+        return "/plugin/hadoop/24x24/hadoop.png";
     }
 
     public String getUrlName() {
-        return "hadoop";
+        return "/hadoop";
     }
 
     /**
