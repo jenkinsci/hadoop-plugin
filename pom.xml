@@ -12,7 +12,7 @@
   <version>1.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Hudson Hadoop plugin</name>
-  <url>http://hudson.gotdns.com/wiki/display/HUDSON/Hadoop+Plugin</url>
+  <url>http://wiki.hudson-ci.org/display/HUDSON/Hadoop+Plugin</url>
 
   <build>
     <plugins>
