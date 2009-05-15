@@ -110,7 +110,7 @@ public class PluginImpl extends Plugin {
         logDir.mkdirs();
 
         return Channels.newJVM("Hadoop",listener,null,
-                new ClasspathBuilder().addAll(distDir,"hadoop-*-core.jar").addAll(distDir,"lib/**/*.jar"),
+                new ClasspathBuilder().addAll(distDir,"hadoop-*-core.jar").addAll(distDir,"lib/**/*.jar").add(distDir.child("conf")),
                 Collections.singletonMap("hadoop.log.dir",logDir.getAbsolutePath()));
     }
 

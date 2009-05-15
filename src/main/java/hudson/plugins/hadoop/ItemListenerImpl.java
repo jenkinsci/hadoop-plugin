@@ -33,6 +33,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * After all the projects have loaded, start Hadoop name node.
+ *
  * @author Kohsuke Kawaguchi
  */
 @Extension
