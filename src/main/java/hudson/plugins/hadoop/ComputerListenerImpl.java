@@ -26,6 +26,7 @@ package hudson.plugins.hadoop;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
+import hudson.model.Hudson;
 import hudson.slaves.ComputerListener;
 
 import java.io.IOException;
@@ -45,6 +46,9 @@ public class ComputerListenerImpl extends ComputerListener {
     @Override
     public void onOnline(Computer c, TaskListener listener) {
         try {
+            if(c==Hudson.getInstance().toComputer())
+                return;   // don't run the hadoop data node on master
+
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
             if(hdfsUrl !=null) {

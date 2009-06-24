@@ -53,7 +53,6 @@ class SlaveStartTask implements Callable<Void,IOException> {
         this.address = address;
     }
 
-    @Override
     public Void call() throws IOException {
         try {
             Channel channel = PluginImpl.createHadoopVM(new File(rootPath.getRemote()), listener);
