@@ -61,7 +61,7 @@ public class ItemListenerImpl extends ItemListener {
                 String masterName = c.getHostName();
                 if(masterName ==null)
                     listener.getLogger().println("Unable to determine the hostname/IP address of the master. Skipping Hadoop deployment");
-                p.channel.call(new SlaveStartTask(c, listener, hdfsUrl, masterName));
+                p.channel.callAsync(new SlaveStartTask(c, listener, hdfsUrl, masterName));
             } else {
                 LOGGER.info("Skipping Hadoop initialization because we don't know the root URL.");
                 p.page.pendingConfiguration = true;
