@@ -30,8 +30,14 @@ import hudson.model.listeners.ItemListener;
 import hudson.util.StreamTaskListener;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.net.ServerSocket;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 /**
  * After all the projects have loaded, start Hadoop name node.
@@ -40,10 +46,12 @@ import java.util.logging.Logger;
  */
 @Extension
 public class ItemListenerImpl extends ItemListener {
+
     @Override
     public void onLoaded() {
         try {
             PluginImpl p = PluginImpl.get();
+            p.postInit();
             String hdfsUrl = p.getHdfsUrl();
             if(hdfsUrl!=null) {
                 // start Hadoop namenode and tracker node
