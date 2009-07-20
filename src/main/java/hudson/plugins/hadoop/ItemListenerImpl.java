@@ -25,6 +25,7 @@ package hudson.plugins.hadoop;
 
 import hudson.Extension;
 import hudson.model.Hudson;
+import hudson.model.Computer;
 import hudson.model.listeners.ItemListener;
 import hudson.util.StreamTaskListener;
 
@@ -55,6 +56,12 @@ public class ItemListenerImpl extends ItemListener {
                     So I'm doing this asynchronously now.
                  */
                 p.channel.callAsync(new JobTrackerStartTask(root, hdfsUrl,p.getJobTrackerAddress()));
+
+                Computer c = Hudson.getInstance().toComputer();
+                String masterName = c.getHostName();
+                if(masterName ==null)
+                    listener.getLogger().println("Unable to determine the hostname/IP address of the master. Skipping Hadoop deployment");
+                p.channel.call(new SlaveStartTask(c, listener, hdfsUrl, masterName));
             } else {
                 LOGGER.info("Skipping Hadoop initialization because we don't know the root URL.");
             }

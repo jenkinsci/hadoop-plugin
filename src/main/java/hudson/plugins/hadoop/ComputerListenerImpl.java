@@ -47,7 +47,7 @@ public class ComputerListenerImpl extends ComputerListener {
     public void onOnline(Computer c, TaskListener listener) {
         try {
             if(c==Hudson.getInstance().toComputer())
-                return;   // don't run the hadoop data node on master
+                return;   // this happens before the master is started.
 
             PluginImpl p = PluginImpl.get();
             String hdfsUrl = p.getHdfsUrl();
