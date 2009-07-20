@@ -48,10 +48,11 @@ import java.util.Collections;
  */
 public class PluginImpl extends Plugin {
     /*package*/ Channel channel;
+    /*package*/ HadoopPage page = new HadoopPage();
 
     @Override
     public void start() throws Exception {
-        Hudson.getInstance().getActions().add(new HadoopPage());
+        Hudson.getInstance().getActions().add(page);
     }
 
     /**

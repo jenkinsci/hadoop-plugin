@@ -64,6 +64,7 @@ public class ItemListenerImpl extends ItemListener {
                 p.channel.call(new SlaveStartTask(c, listener, hdfsUrl, masterName));
             } else {
                 LOGGER.info("Skipping Hadoop initialization because we don't know the root URL.");
+                p.page.pendingConfiguration = true;
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to start Hadoop on master",e);

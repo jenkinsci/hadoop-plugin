@@ -36,6 +36,8 @@ import java.net.URL;
  * @author Kohsuke Kawaguchi
  */
 public class HadoopPage extends AbstractModelObject implements Action {
+    /*package*/ boolean pendingConfiguration;
+
     public String getDisplayName() {
         return "Hadoop";
     }
@@ -50,6 +52,13 @@ public class HadoopPage extends AbstractModelObject implements Action {
 
     public String getUrlName() {
         return "/hadoop";
+    }
+
+    /**
+     * Returns true if we haven't started Hadoop because the root URL is unknown.
+     */
+    public boolean isPendingConfiguration() {
+        return pendingConfiguration;
     }
 
     /**
