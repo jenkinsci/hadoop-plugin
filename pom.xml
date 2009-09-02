@@ -52,6 +52,6 @@
   </dependencies>
 
   <properties>
-    <hadoop.version>0.19.1-hudson-2</hadoop.version>
+    <hadoop.version>0.19.1-hudson-3</hadoop.version>
   </properties>
 </project>

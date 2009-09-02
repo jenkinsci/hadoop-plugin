@@ -30,6 +30,7 @@ import org.apache.hadoop.hdfs.server.namenode.NameNode;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Starts a {@link NameNode}.
@@ -37,11 +38,13 @@ import java.io.IOException;
 class NameNodeStartTask implements Callable<Void,IOException> {
     private final File hudsonRoot;
     private final String hdfsUrl;
+    private final int hdfsPort;
     private boolean format = Boolean.getBoolean("hadoop.format");
 
-    NameNodeStartTask(File hudsonRoot, String hdfsUrl) {
+    NameNodeStartTask(File hudsonRoot, String hdfsUrl, int hdfsPort) {
         this.hudsonRoot = hudsonRoot;
         this.hdfsUrl = hdfsUrl;
+        this.hdfsPort = hdfsPort;
     }
 
     public Void call() throws IOException {

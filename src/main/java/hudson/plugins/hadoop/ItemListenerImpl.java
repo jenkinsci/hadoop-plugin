@@ -58,7 +58,7 @@ public class ItemListenerImpl extends ItemListener {
                 StreamTaskListener listener = new StreamTaskListener(System.out);
                 File root = Hudson.getInstance().getRootDir();
                 p.channel = PluginImpl.createHadoopVM(root, listener);
-                p.channel.call(new NameNodeStartTask(root, hdfsUrl));
+                p.channel.call(new NameNodeStartTask(root, hdfsUrl, p.getHdfsAddress().getPort()));
                 /*
                     I encountered a problem once that HDFS doesn't exit a safe mode by itself, causing Hudson to hang in the boot.
                     So I'm doing this asynchronously now.
