@@ -13,6 +13,12 @@
   <name>Jenkins Hadoop plugin</name>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Hadoop+Plugin</url>
 
+  <scm>
+   <connection>scm:git:git://github.com/jenkinsci/hadoop-plugin.git</connection>
+   <developerConnection>scm:git:git@github.com:jenkinsci/hadoop-plugin.git</developerConnection>
+   <url>https://github.com/jenkinsci/hadoop-plugin</url>
+  </scm>
+
   <build>
     <plugins>
       <plugin>
