@@ -10,8 +10,8 @@
   <artifactId>hadoop</artifactId>
   <version>1.4-SNAPSHOT</version>
   <packaging>hpi</packaging>
-  <name>Hudson Hadoop plugin</name>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/Hadoop+Plugin</url>
+  <name>Jenkins Hadoop plugin</name>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Hadoop+Plugin</url>
 
   <build>
     <plugins>
