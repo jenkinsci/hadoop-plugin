@@ -32,9 +32,9 @@ THE SOFTWARE.
             Before you can use Hadoop...
           </h1>
           <p>
-            Hudson hasn't started Hadoop yet because the system configuration is incomplete.
-            Please visit the <a href="../configure">system configuration page</a>, check the Hudson URL,
-            and click "Save", then <a href="../restart">restart Hudson</a>.
+            Jenkins hasn't started Hadoop yet because the system configuration is incomplete.
+            Please visit the <a href="../configure">system configuration page</a>, check the Jenkins URL,
+            and click "Save", then <a href="../restart">restart Jenkins</a>.
           </p>
         </j:when>
         <j:otherwise>
@@ -42,7 +42,7 @@ THE SOFTWARE.
             <img src="http://hadoop.apache.org/images/hadoop-logo.jpg" alt="Hadoop Logo"/>
           </div>
           <p>
-            This Hudson cluster also acts as Hadoop cluster.
+            This Jenkins cluster also acts as Hadoop cluster.
           </p>
 
           <ul>
